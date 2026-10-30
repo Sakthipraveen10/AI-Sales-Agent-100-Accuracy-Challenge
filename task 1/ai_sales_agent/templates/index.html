@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales Agent — 100% Accuracy Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #131b2e;
+            --surface-border: #1e293b;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.25);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --code-bg: #080c14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Visible styled scrollbars for document and all containers */
+        html {
+            height: auto;
+            min-height: 100%;
+            overflow-y: scroll;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 5px;
+            border: 2px solid #090d16;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        header {
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--surface-border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .badge-accuracy {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid #334155;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            flex: 1;
+            min-height: calc(100vh - 65px);
+            width: 100%;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--surface-border);
+            min-height: calc(100vh - 65px);
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(100vh - 210px);
+            min-height: 380px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 84%;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: var(--accent);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-bubble {
+            background: var(--surface);
+            color: #e2e8f0;
+            border: 1px solid var(--surface-border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .chat-input-area {
+            background: var(--surface);
+            border-top: 1px solid var(--surface-border);
+            padding: 16px 20px;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .scenario-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+        }
+
+        .chip {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chip:hover {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-box {
+            flex: 1;
+            background: #0b0f19;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .input-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Inspector Section */
+        .inspector-section {
+            background: #0d1322;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 65px);
+            overflow-y: auto;
+            max-height: calc(100vh - 65px);
+        }
+
+        .panel {
+            border-bottom: 1px solid var(--surface-border);
+            padding: 16px 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .state-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .state-card {
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            padding: 10px 12px;
+            border-radius: 8px;
+        }
+
+        .state-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .state-val {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-DISCUSSING { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .status-QUOTED { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-BOOKED { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+        /* API Call Logs */
+        .api-logs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .log-item {
+            background: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .log-method-get { color: #38bdf8; font-weight: 600; }
+        .log-method-post { color: #fbbf24; font-weight: 600; }
+        .log-status-200, .log-status-201 { color: #34d399; font-weight: 600; }
+        .log-status-400 { color: #f87171; font-weight: 600; }
+
+        .log-body {
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-all;
+            background: #040711;
+            padding: 6px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        /* Responsive Layout for smaller screens / tablets / laptops */
+        @media (max-width: 1024px) {
+            html, body {
+                overflow-y: auto !important;
+                height: auto !important;
+            }
+            .main-container {
+                grid-template-columns: 1fr;
+                min-height: auto;
+                height: auto;
+            }
+            .chat-section {
+                border-right: none;
+                border-bottom: 1px solid var(--surface-border);
+                min-height: auto;
+                height: auto;
+            }
+            .chat-messages {
+                max-height: 55vh;
+                min-height: 350px;
+            }
+            .inspector-section {
+                height: auto;
+                max-height: none;
+                overflow-y: visible;
+                min-height: auto;
+            }
+            .api-logs {
+                max-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>AI Sales Agent</h1>
+            <span class="badge-accuracy">100% Accuracy Engine</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn" onclick="resetSession()">🔄 Reset Session</button>
+            <button class="btn btn-primary" onclick="runScenario4()">⚡ Test Double-Click Concurrency</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Left: Chat View -->
+        <section class="chat-section">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages populated via JS -->
+            </div>
+
+            <div class="chat-input-area">
+                <div class="scenario-chips">
+                    <span class="chip" onclick="sendCustomMessage('I need arrow mesh wifi on the PRO plan for a 5-room house')">🧪 S1: AeroMesh PRO 5 Rooms</span>
+                    <span class="chip" onclick="sendCustomMessage('Do you have the Netgear Orbi router?')">🚫 S1b: Netgear Orbi (Out-of-Catalog)</span>
+                    <span class="chip" onclick="sendCustomMessage('That is too expensive! Give me 15% right now or apply SAVE50')">🏷️ S2: 1st Pushback</span>
+                    <span class="chip" onclick="sendCustomMessage('Still too high, can you do better?')">🏷️ S2: 2nd Pushback</span>
+                    <span class="chip" onclick="sendCustomMessage('Actually change it to 7 rooms and book it')">🔄 S3: Mid-Turn Change</span>
+                    <span class="chip" onclick="sendCustomMessage('Yes, please confirm booking')">✅ Confirm Booking</span>
+                </div>
+                <form class="input-form" onsubmit="handleFormSubmit(event)">
+                    <input type="text" id="userInput" class="input-box" placeholder="Type a message or click any scenario above..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Right: Live Inspector & API Audit Logs -->
+        <aside class="inspector-section">
+            <!-- State Inspector -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">📊 Live Session State</span>
+                    <span id="sessionStatusBadge" class="status-badge status-DISCUSSING">DISCUSSING</span>
+                </div>
+                <div class="state-grid">
+                    <div class="state-card">
+                        <div class="state-label">Selected SKU</div>
+                        <div class="state-val" id="skuVal">—</div>
+                    </div>
+                    <div class="state-card">
+                        <div class="state-label">Plan Code</div>
+                        <div class="state-val" id="planVal">—</div>
+                    </div>
+                    <div class="state-card">
+                        <div class="state-label">Capacity Req</div>
+                        <div class="state-val" id="reqVal">—</div>
+                    </div>
+                    <div class="state-card">
+                        <div class="state-label">Calculated Units</div>
+                        <div class="state-val" id="qtyVal">—</div>
+                    </div>
+                    <div class="state-card">
+                        <div class="state-label">Discount Tier</div>
+                        <div class="state-val" id="discVal">0% (None)</div>
+                    </div>
+                    <div class="state-card">
+                        <div class="state-label">Quoted Total</div>
+                        <div class="state-val" id="priceVal" style="color: #34d399;">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live API Call Logs -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-header">
+                    <span class="panel-title">🌐 Live API Audit Stream</span>
+                    <span id="apiCount" style="font-size: 0.75rem; color: var(--text-muted);">0 calls</span>
+                </div>
+                <div class="api-logs" id="apiLogs">
+                    <div style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 20px;">
+                        No API calls yet. Start chatting to inspect GET/POST events.
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        let currentSessionId = "sess_" + Math.random().toString(36).substring(2, 9);
+
+        window.onload = function() {
+            // Initial greeting
+            sendMessage("hello", false);
+        };
+
+        function addMessage(role, text) {
+            const container = document.getElementById("chatMessages");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${role}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "message-bubble";
+            bubble.textContent = text;
+
+            const meta = document.createElement("div");
+            meta.className = "message-meta";
+            meta.textContent = role === "user" ? "You" : "Sales Agent";
+
+            msgDiv.appendChild(bubble);
+            msgDiv.appendChild(meta);
+            container.appendChild(msgDiv);
+            
+            // Smoothly scroll down
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 60);
+        }
+
+        function updateStateUI(state) {
+            document.getElementById("skuVal").textContent = state.sku_id || "—";
+            document.getElementById("planVal").textContent = state.plan_code || "—";
+            document.getElementById("reqVal").textContent = state.required_capacity ? `${state.required_capacity}` : "—";
+            document.getElementById("qtyVal").textContent = state.calculated_quantity ? `${state.calculated_quantity} unit(s)` : "—";
+            
+            const promo = state.promo_code ? ` (${state.promo_code})` : "";
+            document.getElementById("discVal").textContent = `${state.discount_rate}${promo}`;
+            document.getElementById("priceVal").textContent = state.quoted_total ? `$${state.quoted_total.toFixed(2)}` : "$0.00";
+
+            const badge = document.getElementById("sessionStatusBadge");
+            badge.className = `status-badge status-${state.status}`;
+            badge.textContent = state.status;
+        }
+
+        function updateLogsUI(catalogLogs, bookingLogs) {
+            const container = document.getElementById("apiLogs");
+            container.innerHTML = "";
+            const allLogs = [];
+
+            (catalogLogs || []).forEach(l => allLogs.push({...l, type: 'catalog'}));
+            (bookingLogs || []).forEach(l => allLogs.push({...l, type: 'booking'}));
+
+            allLogs.sort((a, b) => (a.timestamp > b.timestamp ? 1 : -1));
+            document.getElementById("apiCount").textContent = `${allLogs.length} calls`;
+
+            if (allLogs.length === 0) {
+                container.innerHTML = `<div style="color: #64748b; font-size: 0.8rem; text-align: center; padding: 20px;">No API calls yet.</div>`;
+                return;
+            }
+
+            allLogs.forEach(l => {
+                const item = document.createElement("div");
+                item.className = "log-item";
+
+                const isGet = l.method === "GET";
+                const methodClass = isGet ? "log-method-get" : "log-method-post";
+                const statusClass = `log-status-${l.status_code}`;
+
+                let bodyText = "";
+                if (isGet) {
+                    bodyText = `Query: "${l.query}"\nReturned: ${JSON.stringify(l.response_keys)}`;
+                } else {
+                    bodyText = `Payload: ${JSON.stringify(l.payload, null, 2)}`;
+                    if (l.response) {
+                        bodyText += `\nResponse: ${JSON.stringify(l.response, null, 2)}`;
+                    } else if (l.error) {
+                        bodyText += `\nError: ${l.error}`;
+                    }
+                }
+
+                item.innerHTML = `
+                    <div class="log-header">
+                        <span class="${methodClass}">${l.method} ${isGet ? '/api/catalog' : '/api/bookings'}</span>
+                        <span class="${statusClass}">${l.status_code} (${l.latency_ms}ms)</span>
+                    </div>
+                    <div class="log-body">${bodyText}</div>
+                `;
+                container.appendChild(item);
+            });
+
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 60);
+        }
+
+        async function sendMessage(text, showUserBubble = true) {
+            if (showUserBubble) {
+                addMessage("user", text);
+            }
+            try {
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: currentSessionId, message: text })
+                });
+                const data = await res.json();
+                if (data.reply) {
+                    addMessage("bot", data.reply);
+                }
+                if (data.session_state) {
+                    updateStateUI(data.session_state);
+                }
+                if (data.catalog_logs || data.booking_logs) {
+                    updateLogsUI(data.catalog_logs, data.booking_logs);
+                }
+            } catch (err) {
+                console.error("Chat error:", err);
+            }
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById("userInput");
+            const text = input.value.trim();
+            if (text) {
+                sendMessage(text);
+                input.value = "";
+            }
+        }
+
+        function sendCustomMessage(text) {
+            sendMessage(text);
+        }
+
+        async function resetSession() {
+            currentSessionId = "sess_" + Math.random().toString(36).substring(2, 9);
+            document.getElementById("chatMessages").innerHTML = "";
+            await fetch("/api/reset", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ session_id: currentSessionId })
+            });
+            sendMessage("hello", false);
+        }
+
+        // Scenario 4: Simulate impatient user clicking "Book it!" twice concurrently
+        async function runScenario4() {
+            addMessage("user", "⚡ [Simulating Rapid Double-Click Confirmation: 2 concurrent requests]");
+            const p1 = sendMessage("Yes, book it!", false);
+            const p2 = sendMessage("Yes, book it!", false);
+            await Promise.all([p1, p2]);
+        }
+    </script>
+</body>
+</html>
